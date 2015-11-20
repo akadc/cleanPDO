@@ -10,9 +10,9 @@
 		private $pdo;
 		// the prepared query in the pdo object
 		private $query;
-		// whether or not we are connected
+		// whether or not there is a connection the db
 		private $connected = false;
-		// the sql params that will be bound the quer (if any)
+		// the sql params that will be bound the query (if any)
 		private $sqlParams = [];
 
 		/**
@@ -22,8 +22,7 @@
 		* @return void
 		*/
 		function __construct($dbSettingsJSON){
-			// get db settings from supplied JSON file
-			// ensure to make sure your json files cannot be requested from a browser, or move them out of web root
+			// get db settings from supplied JSON file. ensure your JSON file is can't be requested from browser
 			// todo: handle json formatting errors
 			$this->dbSettings = json_decode(file_get_contents($dbSettingsJSON));
 			// make the actual db connection
@@ -37,27 +36,28 @@
 		* 
 		*/
 		function __destruct(){
-			// kill the connection on destruct
 			$this->disconnect();
 		}
 		/**
 		* Connects to the database or logs an error message about connection failure
 		*
 		* @param void 
-		* @return void
+		* @return string returns "connected successfully" or connection error message
 		*/
-		function connect(){
-			// set db connection configs 
-			// were setting character set to utf8, making sure that db level query errors get reported as PDO exceptions
-			$dbConnConfigs = array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8'",PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION);
+		private function connect(){
+			// set db connection configs: character set to utf8, db level query errors get reported as PDO exceptions
+			$dbConnConfigs = [PDO::MYSQL_ATTR_INIT_COMMAND=>"SET NAMES 'utf8'",PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION];
 			// attempt to connect
 			try {
-				$this->pdo = new PDO('mysql:host='.$this->dbSettings->host.';dbname='.$this->dbSettings->db, $this->dbSettings->user, $this->dbSettings->password,$dbConnConfigs);
+				$this->pdo = new PDO('mysql:host='.$this->dbSettings->host.';dbname='.$this->dbSettings->db
+									, $this->dbSettings->user
+									, $this->dbSettings->password,$dbConnConfigs);
 				$this->connected = true;
+				return "Connected successfully";
 			}
-			// no connection, log issue
+			// no connection, log issue & return error
 			catch (PDOException $error) {
-				$this->logError('DB Connection Error: '.$error->getMessage());
+				return $this->logError('DB Connection Error: '.$error->getMessage());
 			}
 		}
 		/**
@@ -66,21 +66,20 @@
 		* @param void 
 		* @return void
 		*/
-		function disconnect(){
+		private function disconnect(){
 			$this->pdo = null;
 		}
 		/**
 		* Logs any errors to the default php error log, kills further processing
 		*
 		* @param string $error the error message
-		* @return void
+		* @return string $error the error message passed in, unaltered
 		*/
-		function logError($error){
-			// log to default errorlog, ensure new line after error message
+		private function logError($error){
+			// log to default errorlog, disconnect (in case we are connected)
 			error_log($error.PHP_EOL,3,ini_get('error_log'));
-			// disconnect connection (if applicable)
 			$this->disconnect();
-			die();
+			return $error;
 		}
 		/**
 		* Adds parameter data (its name, value and data type) in an array to the main parameter array used in all PDO SQL binding
@@ -90,7 +89,7 @@
 		* @param constant $type the expected data type for the value
 		* @return void
 		*/
-		function addParam ($name,$value,$type){
+		public function addParam ($name,$value,$type){
 			$this->sqlParams[] = [$name,$value,$type];
 		}
 		/**
@@ -99,7 +98,7 @@
 		* @param void
 		* @return void
 		*/
-		function bindSQLparams(){
+		private function bindSQLparams(){
 			foreach ($this->sqlParams as $currParam){
 				$this->query->bindParam($currParam[0],$currParam[1],$currParam[2]);
 			}
@@ -109,42 +108,40 @@
 		*
 		* @param string $query the query to exectute. ensure inputs are parameterized 
 		* @param constant $fetchmode the fetch mode to use when executing selet or show queries
-		* @return array/int/null : array is passed back for select / show statements, INT for insert, update, delete - null for everything else
+		* @return array/int/string/null : array is passed back for select and show statements / INT for insert, update, delete / string for errors / null for everything else
 		*/
-		function processQuery($query,$fetchmode = PDO::FETCH_ASSOC){
+		public function processQuery($query,$fetchmode = PDO::FETCH_ASSOC){
 			try {
-				// trim possible whitespace in query
 				$query = trim($query);
-				// if for some reason the DB is not connected, try again
-				// todo: this may be uneccesary because $this-connected is not updated if a connection is dropped 
+				// if the db didn't connect on __construct, try again
 				if (!$this->connected){
-					$this->connect();
+					$connStatus = $this->connect();
+					// if the db still hasn't connected return connection error
+					if (!$this->connected){
+						return $connStatus;
+					}
 				}
-				// prepare the query, bind any params
+				// prepare query, bind params, execute query
 				$this->query = $this->pdo->prepare($query);
 				$this->bindSQLparams();
-				// execute the query 
 				$this->query->execute();
-				// reset the query params so that subsequent queries don't get old params
+				// always reset query params after use so they aren't used on subsequent queries
 				$this->sqlParams = [];
-				// get first word in query in order to determine what info to pass back
+				// get SQL statement type by first word in query
 				$statement = substr($query,0,strpos($query,' '));
 				// if a record set is to be passed back
 				if ($statement === 'select' || $statement === 'show') {
 					return $this->query->fetchAll($fetchmode);
 				}
 				// if a number of rows effected is to be passed back
-				elseif ( $statement === 'insert' ||  $statement === 'update' || $statement === 'delete' ) {
+				if ($statement === 'insert' ||  $statement === 'update' || $statement === 'delete' ) {
 					return $this->query->rowCount();	
 				}
-				// anything else? return null
-				else {
-					return NULL;
-				}
+				return NULL;
 			}
 			// if there was an error report
 			catch (PDOException $error) {
-				$this->logError('Query Execution Error: '.$error->getMessage());
+				return $this->logError('Query Execution Error: '.$error->getMessage());
 			}
 		}
 	}
