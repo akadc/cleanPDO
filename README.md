@@ -21,7 +21,7 @@ $result = $db->processQuery($query);
 
 ```php
 $query = 'insert into users (name) values (:username)';
-$db->addParam(':id',"David",PDO::PARAM_STR);
+$db->addParam(':username',"David",PDO::PARAM_STR);
 $result = $db->processQuery($query);
 ```
 
