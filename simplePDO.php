@@ -5,7 +5,7 @@
 	 */
 
 	namespace AkaDMC\SimplePDO;
-    use PDO;
+	use PDO;
 
 	class db {
 
