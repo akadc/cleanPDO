@@ -1,0 +1,7 @@
+{
+  "name": "AkaDMC/SimplePDO",
+  "description": "Simplistic PHP PDO Wrapper",
+  "require": {
+    "php": "^7.2"
+  }
+}
