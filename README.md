@@ -1,4 +1,4 @@
-# SimplePDO
+# cleanPDO
 
 A simple DB class written to utilize MYSQL &amp; PDO in PHP. The aim of this project is to keep the DB interaction modern, concise and responsive yet still retain all the most commonly used features. Any push requests are welcome.
 
