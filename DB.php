@@ -4,7 +4,7 @@
 	 * this class handles basic MySQL PDO preperation, execution and result passback
 	 */
 
-	namespace AkaDMC\SimplePDO;
+	namespace AkaDMC\CleanPDO;
 	use PDO;
 
 	class db {
