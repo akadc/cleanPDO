@@ -3,5 +3,10 @@
   "description": "Simplistic PHP PDO Wrapper",
   "require": {
     "php": "^7.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "AkaDMC\\SimplePDO\\": "/"
+    }
   }
 }
