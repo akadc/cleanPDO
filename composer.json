@@ -1,6 +1,6 @@
 {
   "name": "aka-dmc/clean-pdo",
-  "description": "Simplistic PHP PDO Wrapper.",
+  "description": "Simplistic PHP PDO Wrapper",
   "require": {
     "php": "^7.2"
   },
