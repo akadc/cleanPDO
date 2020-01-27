@@ -56,7 +56,8 @@
 			try {
 				$this->pdo = new PDO('mysql:host='.$this->dbSettings->host.';dbname='.$this->dbSettings->db
 									, $this->dbSettings->user
-									, $this->dbSettings->password,$dbConnConfigs);
+									, $this->dbSettings->password
+                                    , $dbConnConfigs);
 				$this->connected = true;
 				return "Connected successfully";
 			}
