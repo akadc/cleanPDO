@@ -51,7 +51,7 @@
 		*/
 		private function connect(){
 			// set db connection configs: character set to utf8, db level query errors get reported as PDO exceptions
-			$dbConnConfigs = [PDO::MYSQL_ATTR_INIT_COMMAND=>"SET NAMES 'utf8'",PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_ORACLE_NULLS=>PDO::NULL_NATURAL];
+			$dbConnConfigs = [PDO::MYSQL_ATTR_INIT_COMMAND=>"SET NAMES 'utf8'",PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION];
 			// attempt to connect
 			try {
 				$this->pdo = new PDO('mysql:host='.$this->dbSettings->host.';dbname='.$this->dbSettings->db
