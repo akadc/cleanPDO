@@ -139,9 +139,15 @@
 				if ($statement === 'select' || $statement === 'show') {
 					return $this->query->fetchAll($fetchmode);
 				}
-				// if a number of rows effected is to be passed back
+				// if a number of rows affected is to be passed back
 				if ($statement === 'insert' ||  $statement === 'update' || $statement === 'delete' ) {
-					return $this->query->rowCount();	
+	                $queryResult = [];
+                    $queryResult['lastInsertID'] = '';
+				    $queryResult['rowCount'] = $this->query->rowCount();
+				    if ($statement === 'insert' && $this->query->rowCount() == 1) {
+                        $queryResult['lastInsertID'] = $this->pdo->lastInsertID();
+                    }
+					return $queryResult;
 				}
 				return NULL;
 			}
