@@ -87,6 +87,31 @@
 			$this->disconnect();
 			return $error;
 		}
+
+        /**
+         * Begins a transaction
+         * @return void
+         */
+        public function beginTransaction (){
+            $this->pdo->beginTransaction();
+        }
+
+        /**
+         * Commits a transaction
+         * @return void
+         */
+        public function commitTransaction (){
+            $this->pdo->commit();
+        }
+
+        /**
+         * Rolls back a transaction
+         * @return void
+         */
+        public function rollbackTransaction (){
+            $this->pdo->rollback();
+        }
+
 		/**
 		* Adds parameter data (its name, value and data type) in an array to the main parameter array used in all PDO SQL binding
 		*
